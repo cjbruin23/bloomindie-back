@@ -3,11 +3,14 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/joho/godotenv"
-
 	_ "github.com/lib/pq"
 )
 
@@ -32,11 +35,23 @@ func main() {
 	defer db.Close()
 
 	var output int
-
 	err = db.QueryRow("SELECT 1").Scan(&output)
 	if err != nil {
 		log.Fatalf("QueryRow failed: %v", err)
 	}
 
 	fmt.Printf("Output: %d\n", output)
+
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello World!"))
+	})
+
+	r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+		// Make user object from body
+		io.Copy(os.Stdout, r.Body)
+		w.Write([]byte("Hello World!"))
+	})
+	http.ListenAndServe(":8080", r)
 }
