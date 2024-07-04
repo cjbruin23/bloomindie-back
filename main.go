@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -48,10 +47,7 @@ func main() {
 		w.Write([]byte("Hello World!"))
 	})
 
-	r.Post("/", func(w http.ResponseWriter, r *http.Request) {
-		// Make user object from body
-		io.Copy(os.Stdout, r.Body)
-		w.Write([]byte("Hello World!"))
-	})
+	r.Mount("/users", usersResource{}.Routes())
+
 	http.ListenAndServe(":8080", r)
 }
